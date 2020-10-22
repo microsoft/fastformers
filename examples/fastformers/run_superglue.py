@@ -429,9 +429,6 @@ def distill(args, train_dataset, teacher_model, student_model, tokenizer):
     tr_rep_loss = 0.
     tr_cls_loss = 0.
     student_model.zero_grad()
-    # train_iterator = trange(
-    #    epochs_trained, int(args.num_train_epochs), desc="Epoch", disable=args.local_rank not in [-1, 0],
-    # )
     train_iterator = range(epochs_trained, int(args.num_train_epochs))
 
     set_seed(args)  # Added here for reproductibility
@@ -459,7 +456,7 @@ def distill(args, train_dataset, teacher_model, student_model, tokenizer):
                 inputs["spans"] = batch[4]
             if args.model_type != "distilbert":
                 inputs["token_type_ids"] = (
-                    batch[2] if args.model_type in ["bert", "xlnet", "albert", "flexbert"] else None
+                    batch[2] if args.model_type in ["bert", "xlnet", "albert"] else None
                 )  # XLM, DistilBERT, RoBERTa, and XLM-RoBERTa don't use segment_ids
 
             # student model output
@@ -560,9 +557,6 @@ def distill(args, train_dataset, teacher_model, student_model, tokenizer):
                     logs['rep_loss'] = rep_loss
                     logging_loss = tr_loss
 
-                    # for key, value in logs.items():
-                    #    tb_writer.add_scalar(key, value, global_step)
-                    # print(json.dumps({**logs, **{"step": global_step}}))
                     logging.info(json.dumps({**logs, **{"step": global_step}}))
 
                 if (
@@ -612,9 +606,6 @@ def distill(args, train_dataset, teacher_model, student_model, tokenizer):
         if args.max_steps > 0 and global_step >= args.max_steps:
             # train_iterator.close()
             break
-
-    # if args.local_rank in [-1, 0]:
-    #    tb_writer.close()
 
     return global_step, tr_loss / global_step
 
@@ -800,7 +791,7 @@ def prune_rewire(args, task_name, model, tokenizer, prefix="", use_tqdm=True):
             inputs["spans"] = batch[4]
         if args.model_type != "distilbert":
             inputs["token_type_ids"] = (
-                batch[2] if args.model_type in ["bert", "xlnet", "albert", "flexbert"] else None #, "flexbert"] else None
+                batch[2] if args.model_type in ["bert", "xlnet", "albert"] else None
             )  # XLM, DistilBERT, RoBERTa, and XLM-RoBERTa don't use segment_ids
         outputs = model(output_attentions=True, **inputs, head_mask=head_mask)
         tmp_eval_loss, logits = outputs[:2]
@@ -1076,7 +1067,7 @@ def evaluate_ort_parallel(args, task_name, onnx_session_options, tokenizer, spli
 
         inputs = {'input_ids': batch[0][:,:batch_seq_length].contiguous().cpu().detach().numpy(),
             'attention_mask': batch[1][:,:batch_seq_length].contiguous().cpu().detach().numpy()}
-        if args.model_type in ["bert", "xlnet", "albert", "flexbert"]:
+        if args.model_type in ["bert", "xlnet", "albert"]:
             inputs["token_type_ids"] = batch[2][:,:batch_seq_length].contiguous().cpu().detach().numpy()
 
         # Queue queries into the Q which ONNX runtime session can consume
@@ -1218,6 +1209,7 @@ def load_and_cache_examples(args, task, tokenizer, split="train"):
 def convert_model_to_onnx(args):
     """Converts a pytorch model checkpoint to an ONNX model."""
     from torch.onnx import export
+
     # Prepare task
     args.task_name = args.task_name.lower()
     assert args.task_name in processors, f"Task {args.task_name} not found!"
@@ -1258,7 +1250,8 @@ def convert_model_to_onnx(args):
         cache_dir=args.cache_dir if args.cache_dir else None,
     )
 
-    # model.to(args.device)
+    # Only CPU is supported
+    model.to(torch.device("cpu"))
     model.eval()
 
     print(">>>>>>> Model loaded.")
@@ -1280,21 +1273,18 @@ def convert_model_to_onnx(args):
             1: 'sequence'
         }
     }
-    if args.model_type in ["bert", "xlnet", "albert", "flexbert"]:
+    if args.model_type in ["bert", "xlnet", "albert"]:
         input_names.append('token_type_ids')
         dynamic_axes["token_type_ids"] = {0: 'batch', 1: 'sequence'}
 
     model_args = (torch.tensor(tokens['input_ids']).unsqueeze(0),
                   torch.tensor(tokens['attention_mask']).unsqueeze(0))
 
-    if args.model_type in ["bert", "xlnet", "albert", "flexbert"]:
+    if args.model_type in ["bert", "xlnet", "albert"]:
         model_args = model_args + (torch.tensor(tokens['token_type_ids']).unsqueeze(0),)
 
-    # from pathlib import Path
-    # Path(args.output_dir + "/onnx").mkdir(exist_ok=True)
-
     print(">>>>>>> ONNX conversion started!")
-    export(
+    torch.onnx.export(
         model,
         model_args,
         f=(args.model_name_or_path + "/model.onnx"),
@@ -1309,6 +1299,64 @@ def convert_model_to_onnx(args):
     print(">>>>>>> Model converted into ONNX format and saved as: ",
           (args.model_name_or_path + "/model.onnx"))
 
+    # Optimize ONNX graph
+    if not args.skip_graph_optimization:
+        optimize_onnx_graph(args, config)
+
+    # Run ONNX model after conversion
+    from onnxruntime import InferenceSession, SessionOptions
+    from onnxruntime.capi.onnxruntime_pybind11_state import RuntimeException
+    print("Checking ONNX model loading from: {}".format(args.model_name_or_path + "/model.onnx"))
+    try:
+        onnx_options = SessionOptions()
+        sess = InferenceSession(args.model_name_or_path + "/model.onnx", onnx_options)
+        print("Model loaded successfully.")
+        if args.model_type in ["bert", "xlnet", "albert"]:
+            output_onnx = sess.run(None, {'input_ids': [tokens['input_ids']],
+                                'attention_mask': [tokens['attention_mask']],
+                                'token_type_ids': [tokens['token_type_ids']]})
+        else:
+            output_onnx = sess.run(None, {'input_ids': [tokens['input_ids']],
+                                'attention_mask': [tokens['attention_mask']]})
+        print(output_onnx)
+    except RuntimeException as re:
+        print("Error while loading the model: {}".format(re))
+
+def optimize_onnx_graph(args, config):
+    """ Optimize ONNX model with graph optimizations and quantizations """
+    import inspect
+
+    from onnx_graph_optimizer.optimizer import optimize_model
+    from onnx_graph_optimizer.onnx_model_bert import BertOptimizationOptions
+
+    # various graph optimization options.
+    # ZCode uses all the optimizations by default.
+    # Whether to use quantization or not can be selected optionally.
+    optimization_options = BertOptimizationOptions('bert')
+    optimization_options.enable_gelu = True
+    optimization_options.enable_layer_norm = True
+    optimization_options.enable_attention = True
+    optimization_options.enable_attention_fbgemm = False if args.skip_quantization else True
+    optimization_options.enable_skip_layer_norm = True
+    optimization_options.enable_embed_layer_norm = True
+    optimization_options.enable_bias_skip_layer_norm = True
+    optimization_options.enable_bias_gelu = True
+    optimization_options.enable_gelu_approximation = False
+    optimization_options.enable_quantize_matmul = False if args.skip_quantization else True
+
+    logger.warning(">>>>>>> Start optimizing ONNX graph")
+    optimizer = optimize_model(args.model_name_or_path + "/model.onnx",
+                   model_type='bert',
+                   num_heads=config.num_attention_heads,
+                   head_size=config.attention_head_size,
+                   hidden_size=config.hidden_size,
+                   optimization_options=optimization_options,
+                   opt_level=0,
+                   use_gpu=False,
+                   only_onnxruntime=False)
+
+    optimizer.save_model_to_file(args.model_name_or_path + "/model.onnx")
+    logger.warning(">>>>>>> Finished optimizing ONNX graph")
 
 def convert_model_to_fp16(args):
     """Converts a fp32 pytorch model checkpoint to a fp16 checkpoint."""
@@ -1562,6 +1610,8 @@ def main():
     parser.add_argument('--state_loss_ratio', type=float, default=0.1)
     parser.add_argument('--att_loss_ratio', type=float, default=0.0)
     parser.add_argument("--save_latest", action="store_true", help="Save the last checkpoint regardless of the score.")
+    parser.add_argument("--skip_graph_optimization", action="store_true", help="Whether to skip ONNX graph optimization.")
+    parser.add_argument("--skip_quantization", action="store_true", help="Whether to skip 8-bit quantization.")
     args = parser.parse_args()
 
     # Setup logging
