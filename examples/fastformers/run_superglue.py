@@ -362,16 +362,20 @@ def distill(args, train_dataset, teacher_model, student_model, tokenizer):
     no_decay = ["bias", "LayerNorm.weight"]
     optimizer_grouped_parameters = [
         {
-            "params": [p for n, p in model.named_parameters() if not any(nd in n for nd in no_decay)],
+            "params": [p for n, p in student_model.named_parameters() if not any(nd in n for nd in no_decay)],
             "weight_decay": args.weight_decay,
         },
-        {"params": [p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)], "weight_decay": 0.0},
+        {"params": [p for n, p in student_model.named_parameters() if any(nd in n for nd in no_decay)], "weight_decay": 0.0},
     ]
 
     optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate, eps=args.adam_epsilon)
     scheduler = get_linear_schedule_with_warmup(
         optimizer, num_warmup_steps=num_warmup_steps, num_training_steps=t_total
     )
+
+    # layer numbers of teacher and student
+    teacher_layer_num = teacher_model.config.num_hidden_layers
+    student_layer_num = student_model.config.num_hidden_layers
 
     # multi-gpu training
     if args.n_gpu > 1:
@@ -387,10 +391,6 @@ def distill(args, train_dataset, teacher_model, student_model, tokenizer):
         student_likelihood = torch.nn.functional.log_softmax(predicts, dim=-1)
         targets_prob = torch.nn.functional.softmax(targets, dim=-1)
         return (- targets_prob * student_likelihood).sum(dim=-1).mean()
-
-    # layer numbers of teacher and student
-    teacher_layer_num = teacher_model.config.num_hidden_layers
-    student_layer_num = student_model.config.num_hidden_layers
 
     # Distill!
     logger.info("***** Running distillation training *****")
@@ -472,8 +472,7 @@ def distill(args, train_dataset, teacher_model, student_model, tokenizer):
             
             # Knowledge Distillation loss
             # 1) logits distillation
-            kd_loss = soft_cross_entropy(outputs_student[1] / args.temperature,
-                            outputs_teacher[1] / args.temperature)
+            kd_loss = soft_cross_entropy(outputs_student[1], outputs_teacher[1])
             loss = kd_loss
             tr_cls_loss += loss.item()
 
