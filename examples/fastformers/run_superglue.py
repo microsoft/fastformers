@@ -654,7 +654,6 @@ def evaluate(args, task_name, model, tokenizer, split="dev", prefix="", use_tqdm
     out_label_ids = None
     ex_ids = None
     eval_dataloader = tqdm(eval_dataloader, desc="Evaluating") if use_tqdm else eval_dataloader
-    # debug_idx = 0
     for batch in eval_dataloader:
         model.eval()
         batch = tuple(t.to(args.device) for t in batch)
@@ -697,9 +696,6 @@ def evaluate(args, task_name, model, tokenizer, split="dev", prefix="", use_tqdm
             preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
             out_label_ids = np.append(out_label_ids, inputs["labels"].detach().cpu().numpy(), axis=0)
             ex_ids.append(guids.detach().cpu().numpy())
-        # debug_idx += 1
-        # if debug_idx > 10:
-        #    break
 
     ex_ids = np.concatenate(ex_ids, axis=0)
     eval_loss = eval_loss / nb_eval_steps
@@ -707,7 +703,6 @@ def evaluate(args, task_name, model, tokenizer, split="dev", prefix="", use_tqdm
         preds = np.argmax(preds, axis=1)
     elif args.output_mode == "regression":
         preds = np.squeeze(preds)
-    # logging.info(f"predictions: {preds}")
     if split != "test":
         # don't have access to test labels, so skip evaluating on them
         # NB(AW): forcing evaluation on ReCoRD on test (no labels) will error
@@ -805,8 +800,6 @@ def prune_rewire(args, task_name, model, tokenizer, prefix="", use_tqdm=True):
         if args.output_mode == "span_classification":
             inputs["spans"] = batch[4]
         if args.model_type != "distilbert":
-            if args.output_mode != "span_classification" and args.model_type in ["bert"]:
-                inputs["seq_lengths"] = batch[-2]
             inputs["token_type_ids"] = (
                 batch[2] if args.model_type in ["bert", "xlnet", "albert", "flexbert"] else None #, "flexbert"] else None
             )  # XLM, DistilBERT, RoBERTa, and XLM-RoBERTa don't use segment_ids
@@ -1044,10 +1037,9 @@ def evaluate_ort_parallel(args, task_name, onnx_session_options, tokenizer, spli
                 input = input_queue.get()
                 if input is None:   # exit
                     break
-                # t0 = time.time()
+                t0 = time.time()
                 output = onnx_session.run(None, input[1])
-                results_q.put((input[0], output, input[2], input[3]))
-                # results_q.put((input[0], output, input[2], input[3], time.time() - t0))
+                results_q.put((input[0], output, input[2], input[3], time.time() - t0))
             except Exception:
                 output = ExceptionWrapper(
                     where="in guid {}".format(-1))
@@ -1059,9 +1051,6 @@ def evaluate_ort_parallel(args, task_name, onnx_session_options, tokenizer, spli
         p = Process(target=_worker_proc, args=(input_queue, result_queue))
         p.start()
         # pin processes to cores
-        # if args.threads_per_instance == 1:
-        #     os.system("taskset -p -c " + processor_list[i] + " " + str(p.pid))
-        # else:
         lpids = ''
         for j in range(args.threads_per_instance):
             lpids += str(processor_list[i*args.threads_per_instance + j])
@@ -1070,6 +1059,7 @@ def evaluate_ort_parallel(args, task_name, onnx_session_options, tokenizer, spli
         os.system("taskset -p -c " + lpids + " " + str(p.pid))
 
     # Eval!
+    wallclock_start = time.time()
     logger.info(f"***** Running evaluation: {prefix} on {task_name} {split} *****")
     logger.info("  Num examples = %d", len(eval_dataset))
     logger.info("  Batch size = %d", args.eval_batch_size)
@@ -1107,13 +1097,13 @@ def evaluate_ort_parallel(args, task_name, onnx_session_options, tokenizer, spli
         else:
             time.sleep(.1)
 
-    # total_time = 0.
+    total_time = 0.
     while not result_tmp_q.empty():
         output_with_id = result_tmp_q.get()
         logits = output_with_id[1][0]
         guids = output_with_id[1][1]
         input_lables = output_with_id[1][2]
-        # total_time += output_with_id[1][3]
+        total_time += output_with_id[1][3]
 
         if preds is None:
             preds = logits[0]
@@ -1125,7 +1115,8 @@ def evaluate_ort_parallel(args, task_name, onnx_session_options, tokenizer, spli
             ex_ids.append(guids)
 
     assert len(ex_ids) == batch_id
-    # print("average latency: ", str(total_time / batch_id))
+    print("############## Average latency: ", str(total_time / batch_id))
+    print("############## Total time for inference (wallclock time): ", str(time.time() - wallclock_start))
 
     ex_ids = np.concatenate(ex_ids, axis=0)
     if args.output_mode in ["classification", "span_classification"] and args.task_name not in ["record"]:

@@ -153,7 +153,7 @@ class XLMConfig(PretrainedConfig):
             # Accessing the model configuration
             configuration = model.config
     """
-
+    pretrained_config_archive_map = XLM_PRETRAINED_CONFIG_ARCHIVE_MAP
     model_type = "xlm"
 
     def __init__(
