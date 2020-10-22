@@ -124,6 +124,7 @@ class BertConfig(PretrainedConfig):
         layer_norm_eps=1e-12,
         pad_token_id=0,
         gradient_checkpointing=False,
+        attention_head_size=64,
         **kwargs
     ):
         super().__init__(pad_token_id=pad_token_id, **kwargs)
@@ -141,3 +142,4 @@ class BertConfig(PretrainedConfig):
         self.initializer_range = initializer_range
         self.layer_norm_eps = layer_norm_eps
         self.gradient_checkpointing = gradient_checkpointing
+        self.attention_head_size = attention_head_size

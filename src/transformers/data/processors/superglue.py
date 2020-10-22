@@ -26,6 +26,7 @@ import numpy as np
 from ...file_utils import is_tf_available
 from .utils import DataProcessor, InputExample, InputFeatures, SpanClassificationExample, SpanClassificationFeatures
 
+import operator
 
 if is_tf_available():
     import tensorflow as tf
@@ -152,6 +153,7 @@ def superglue_convert_examples_to_features(
                     add_special_tokens=True,
                     max_length=max_length,
                     return_token_type_ids=True,
+                    truncation=True,
                 )
                 num_joiner_specials = len(inputs["input_ids"]) - num_non_special_tokens - 2
                 offset = len(inputs_a["input_ids"]) - 1 + num_joiner_specials - 1
@@ -181,6 +183,7 @@ def superglue_convert_examples_to_features(
                 add_special_tokens=True,
                 max_length=max_length,
                 return_token_type_ids=True,
+                truncation=True,
             )
             input_ids, token_type_ids = inputs["input_ids"], inputs["token_type_ids"]
 
@@ -189,6 +192,7 @@ def superglue_convert_examples_to_features(
         attention_mask = [1 if mask_padding_with_zero else 0] * len(input_ids)
 
         # Zero-pad up to the sequence length.
+        seq_length = len(input_ids)
         padding_length = max_length - len(input_ids)
         if pad_on_left:
             # TODO(AW): will mess up span tracking
@@ -233,6 +237,7 @@ def superglue_convert_examples_to_features(
                 attention_mask=attention_mask,
                 token_type_ids=token_type_ids,
                 label=label,
+                seq_length=seq_length,
             )
         else:
             feats = InputFeatures(
@@ -241,6 +246,7 @@ def superglue_convert_examples_to_features(
                 attention_mask=attention_mask,
                 token_type_ids=token_type_ids,
                 label=label,
+                seq_length=seq_length,
             )
 
         features.append(feats)
@@ -318,12 +324,15 @@ class BoolqProcessor(DataProcessor):
 
     def write_preds(self, preds, ex_ids, out_dir):
         """Write predictions in SuperGLUE format."""
-        preds = preds[ex_ids]  # sort just in case we got scrambled
+        # The original code doesn't sort the predictions.
+        # preds = preds[ex_ids]  # sort just in case we got scrambled
+        preds_with_exids = list(zip(preds, ex_ids))  # sort just in case we got scrambled
+        preds_with_exids.sort(key = operator.itemgetter(1)) 
         idx2label = {i: label for i, label in enumerate(self.get_labels())}
         with open(os.path.join(out_dir, "BoolQ.jsonl"), "w") as pred_fh:
-            for idx, pred in enumerate(preds):
-                pred_label = idx2label[int(pred)]
-                pred_fh.write(f"{json.dumps({'idx': idx, 'label': pred_label})}\n")
+            for idx, pred_exid in enumerate(preds_with_exids):
+                pred_label = idx2label[int(pred_exid[0])]
+                pred_fh.write(f"{json.dumps({'idx': idx, 'label': 'true' if pred_label else 'false'})}\n")
         logger.info(f"Wrote {len(preds)} predictions to {out_dir}.")
 
 
@@ -369,11 +378,14 @@ class CbProcessor(DataProcessor):
 
     def write_preds(self, preds, ex_ids, out_dir):
         """Write predictions in SuperGLUE format."""
-        preds = preds[ex_ids]  # sort just in case we got scrambled
+        # The original code doesn't sort the predictions.
+        # preds = preds[ex_ids]  # sort just in case we got scrambled
+        preds_with_exids = list(zip(preds, ex_ids))  # sort just in case we got scrambled
+        preds_with_exids.sort(key = operator.itemgetter(1)) 
         idx2label = {i: label for i, label in enumerate(self.get_labels())}
         with open(os.path.join(out_dir, "CB.jsonl"), "w") as pred_fh:
-            for idx, pred in enumerate(preds):
-                pred_label = idx2label[int(pred)]
+            for idx, pred_exid in enumerate(preds_with_exids):
+                pred_label = idx2label[int(pred_exid[0])]
                 pred_fh.write(f"{json.dumps({'idx': idx, 'label': pred_label})}\n")
         logger.info(f"Wrote {len(preds)} predictions to {out_dir}.")
 
@@ -426,11 +438,14 @@ class CopaProcessor(DataProcessor):
 
     def write_preds(self, preds, ex_ids, out_dir):
         """Write predictions in SuperGLUE format."""
-        preds = preds[ex_ids]  # sort just in case we got scrambled
+        # The original code doesn't sort the predictions.
+        # preds = preds[ex_ids]  # sort just in case we got scrambled
+        preds_with_exids = list(zip(preds, ex_ids))  # sort just in case we got scrambled
+        preds_with_exids.sort(key = operator.itemgetter(1)) 
         idx2label = {i: label for i, label in enumerate(self.get_labels())}
         with open(os.path.join(out_dir, "COPA.jsonl"), "w") as pred_fh:
-            for idx, pred in enumerate(preds):
-                pred_label = idx2label[int(pred)]
+            for idx, pred_exid in enumerate(preds_with_exids):
+                pred_label = idx2label[int(pred_exid[0])]
                 pred_fh.write(f"{json.dumps({'idx': idx, 'label': pred_label})}\n")
         logger.info(f"Wrote {len(preds)} predictions to {out_dir}.")
 
@@ -467,6 +482,7 @@ class MultircProcessor(DataProcessor):
 
     def _create_examples(self, lines, set_type):
         """Creates examples for the training and dev sets."""
+        # NOTE(ykim362): Let's not sort. The write_preds might be complicated
         # NOTE(Alex): currently concatenating passage and question,
         # which might lead to the question getting cut off. An
         # alternative is to concatenate question and answer, but that
@@ -488,8 +504,11 @@ class MultircProcessor(DataProcessor):
                     label = answer_dict["label"] if "label" in answer_dict else 0
                     assert passage_and_question, "Empty passage and question!"
                     if answer == "":
-                        # training data has a few blank answers
-                        continue
+                        if set_type == "train":  # for dev and test sets, the predictions need to be generated anyway
+                            # training data has a few blank answers
+                            continue
+                        else: # for dev and test sets, the predictions need to be generated anyway
+                            answer = "no"
                     examples.append(InputExample(guid=guid, text_a=passage_and_question, text_b=answer, label=label))
         return examples
 
@@ -549,10 +568,12 @@ class RecordProcessor(DataProcessor):
         return [0, 1]
 
     def get_answers(self, data_dir, set_type):
-        """ """
+        """ get answers """
         if self._answers is None or set_type not in self._answers:
             self._answers = {set_type: {}}
             data_file = f"{set_type}.jsonl"
+            if set_type == "dev":
+                data_file = "val.jsonl"
             data = self._read_jsonl(os.path.join(data_dir, data_file))
             for (i, line) in enumerate(data):
                 passage_id = line["idx"]
@@ -571,8 +592,9 @@ class RecordProcessor(DataProcessor):
 
     def _create_examples(self, lines, set_type):
         """Creates examples for the training and dev sets."""
+        # NOTE(ykim362): Let's not sort. The write_preds might be complicated
         examples = []
-        qst2ans = {}
+        # qst2ans = {}
         for (i, line) in enumerate(lines):
             passage_id = line["idx"]
             passage = line["passage"]["text"]
@@ -586,7 +608,7 @@ class RecordProcessor(DataProcessor):
                 question_template = question_dict["query"]
                 # TODO(AW): no answer case
                 answers = [a["text"] for a in question_dict["answers"]] if "answers" in question_dict else []
-                qst2ans[(passage_id, question_id)] = answers
+                # qst2ans[(passage_id, question_id)] = answers
 
                 for ent_id, ent in enumerate(ents):
                     label = 1 if ent in answers else 0
@@ -662,11 +684,14 @@ class RteProcessor(DataProcessor):
 
     def write_preds(self, preds, ex_ids, out_dir):
         """Write predictions in SuperGLUE format."""
-        preds = preds[ex_ids]  # sort just in case we got scrambled
+        # The original code doesn't sort the predictions.
+        # preds = preds[ex_ids]  # sort just in case we got scrambled
+        preds_with_exids = list(zip(preds, ex_ids))  # sort just in case we got scrambled
+        preds_with_exids.sort(key = operator.itemgetter(1)) 
         idx2label = {i: label for i, label in enumerate(self.get_labels())}
         with open(os.path.join(out_dir, "RTE.jsonl"), "w") as pred_fh:
-            for idx, pred in enumerate(preds):
-                pred_label = idx2label[int(pred)]
+            for idx, pred_exid in enumerate(preds_with_exids):
+                pred_label = idx2label[int(pred_exid[0])]
                 pred_fh.write(f"{json.dumps({'idx': idx, 'label': pred_label})}\n")
         logger.info(f"Wrote {len(preds)} predictions to {out_dir}.")
 
@@ -721,12 +746,15 @@ class WicProcessor(DataProcessor):
 
     def write_preds(self, preds, ex_ids, out_dir):
         """Write predictions in SuperGLUE format."""
-        preds = preds[ex_ids]  # sort just in case we got scrambled
+        # The original code doesn't sort the predictions.
+        # preds = preds[ex_ids]  # sort just in case we got scrambled
+        preds_with_exids = list(zip(preds, ex_ids))  # sort just in case we got scrambled
+        preds_with_exids.sort(key = operator.itemgetter(1)) 
         idx2label = {i: label for i, label in enumerate(self.get_labels())}
         with open(os.path.join(out_dir, "WiC.jsonl"), "w") as pred_fh:
-            for idx, pred in enumerate(preds):
-                pred_label = idx2label[int(pred)]
-                pred_fh.write(f"{json.dumps({'idx': idx, 'label': pred_label})}\n")
+            for idx, pred_exid in enumerate(preds_with_exids):
+                pred_label = idx2label[int(pred_exid[0])]
+                pred_fh.write(f"{json.dumps({'idx': idx, 'label': 'true' if pred_label else 'false'})}\n")
         logger.info(f"Wrote {len(preds)} predictions to {out_dir}.")
 
 

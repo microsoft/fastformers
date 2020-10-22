@@ -126,6 +126,12 @@ setup(
         "sentencepiece",
         # for XLM
         "sacremoses",
+        # for superglue
+        "sklearn",
+        "experiment_impact_tracker",
+        "torch",
+        # for superglue - impact tracker
+        "ratelim",
     ],
     extras_require=extras,
     entry_points={
