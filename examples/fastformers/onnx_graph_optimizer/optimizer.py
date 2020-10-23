@@ -22,7 +22,7 @@
 # This modele (onnx_graph_optimizer) is an extension of the transformer graph optimizer from onnxruntime repository.
 # On top of the onnxruntime 1.4.0, FBGEMM based quantization operators are added.
 # fusion_attention_fbgemm.py
-# fusion_quantmatmul.py
+# fusion_quantmatmul_fbgemm.py
 #
 
 import logging

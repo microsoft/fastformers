@@ -1,9 +1,3 @@
-FastFormers provides a set of methods/recipes to achieve highly efficient inference of Transformer models for Natural Language Understanding (NLU). The details of the methods and analysis results are described in the paper *FastFormers: Highly Efficient Transformer Models for Natural Language Understanding*.
-
-### Notes
-
-
-
 <p align="center">
     <br>
     <img src="https://raw.githubusercontent.com/huggingface/transformers/master/docs/source/imgs/transformers_logo_name.png" width="400"/>

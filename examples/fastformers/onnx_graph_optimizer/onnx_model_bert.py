@@ -17,7 +17,7 @@ from .fusion_gelu import FusionGelu
 from .fusion_fastgelu import FusionFastGelu
 from .fusion_biasgelu import FusionBiasGelu
 from .fusion_gelu_approximation import FusionGeluApproximation
-from .fusion_quantmatmul import FusionQuantizeMatMulFbgemm
+from .fusion_quantmatmul_fbgemm import FusionQuantizeMatMulFbgemm
 from .fusion_utils import FusionUtils
 
 logger = getLogger(__name__)
@@ -175,7 +175,6 @@ class BertOnnxModel(OnnxModel):
         bert_graph_inputs = self.get_graph_inputs_from_fused_nodes(
             casted=True) + self.get_graph_inputs_from_fused_nodes(casted=False)
 
-        dynamic_batch_inputs = {}
         for input in self.model.graph.input:
             if input.name in bert_graph_inputs:
                 dim_proto = input.type.tensor_type.shape.dim[0]

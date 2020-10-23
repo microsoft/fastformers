@@ -21,11 +21,7 @@ class FusionQuantizeMatMulFbgemm(Fusion):
           super().__init__(model, 'QuantizeMatMulFbgemm', ['SkipLayerNormalization', 'BiasGelu'], 'quantize matmul with fbgemm')
 
     def fuse(self, node, input_name_to_nodes, output_name_to_node):
-        # matmul_op_type = node.op_type
         fuse_op_type = 'QuantizeMatMulFbgemm'
-
-        #if len(node.input) != 1:
-        #    return
 
         # Fused matmul + bias + relu
         if node.op_type == 'Relu':
@@ -70,27 +66,6 @@ class FusionQuantizeMatMulFbgemm(Fusion):
         # (matmul) = nodes
         if len(nodes) != 1:
             return
-
-        # bias should be one dimension
-        #bias_index = -1
-        #for i, input in enumerate(add.input):
-        #    initializer = self.model.get_initializer(input)
-        #    if initializer is None:
-        #        continue
-        #    bias_index = i
-        #    bias_weight = numpy_helper.to_array(initializer)
-        #    break
-        #if bias_weight is None:
-        #    return
-        #if len(bias_weight.shape) != 1:
-        #    return
-
-        #subgraph_nodes = [node, add]
-        #if not self.model.is_safe_to_fuse_nodes(subgraph_nodes, [node.output[0]], input_name_to_nodes,
-        #                                        output_name_to_node):
-        #    return
-
-        # some check needed -> weight matrix 2D and fixed
 
         self.nodes_to_remove.extend(nodes)
 

@@ -61,11 +61,6 @@ class FusionAttentionFbgemm(Fusion):
         qkv_bias = np.stack((qb, kb, vb), axis=-2)
 
         attention_node_name = self.model.create_node_name('QAttentionFbgemm')
-#        attention_node_name = self.model.create_node_name('Attention')
-
-        #print("head size: " + str(self.head_size))
-        #print("num heads: " + str(self.num_heads))
-        #print("self.hidden_size, 3 * self.num_heads * self.head_size: " + str(self.hidden_size) + ", " + str(3 * self.num_heads * self.head_size))
 
         weight = helper.make_tensor(name=attention_node_name + '_qkv_weight',
                                     data_type=TensorProto.FLOAT,
