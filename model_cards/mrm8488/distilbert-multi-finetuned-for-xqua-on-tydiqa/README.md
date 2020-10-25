@@ -39,7 +39,7 @@ python transformers/examples/question-answering/run_squad.py \
   --train_file /path/to/dataset/train.json \
   --predict_file /path/to/dataset/dev.json \
   --per_gpu_train_batch_size 24 \
-  --per_gpu_eval_batch_size 24 \
+  --per_instance_eval_batch_size 24 \
   --learning_rate 3e-5 \
   --num_train_epochs 5 \
   --max_seq_length 384 \

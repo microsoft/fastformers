@@ -74,7 +74,7 @@ class TrainingArguments:
             "Batch size per GPU/TPU core/CPU for training."
         },
     )
-    per_gpu_eval_batch_size: Optional[int] = field(
+    per_instance_eval_batch_size: Optional[int] = field(
         default=None,
         metadata={
             "help": "Deprecated, the use of `--per_device_eval_batch_size` is preferred."
@@ -151,12 +151,12 @@ class TrainingArguments:
 
     @property
     def eval_batch_size(self) -> int:
-        if self.per_gpu_eval_batch_size:
+        if self.per_instance_eval_batch_size:
             logger.warning(
-                "Using deprecated `--per_gpu_eval_batch_size` argument which will be removed in a future "
+                "Using deprecated `--per_instance_eval_batch_size` argument which will be removed in a future "
                 "version. Using `--per_device_eval_batch_size` is preferred."
             )
-        per_device_batch_size = self.per_gpu_eval_batch_size or self.per_device_eval_batch_size
+        per_device_batch_size = self.per_instance_eval_batch_size or self.per_device_eval_batch_size
         return per_device_batch_size * max(1, self.n_gpu)
 
     @cached_property

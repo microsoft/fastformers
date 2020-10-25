@@ -33,7 +33,7 @@ The model was trained on a Tesla P100 GPU and 25GB of RAM with the following com
   --data_dir /content/QNLI_dataset \
   --max_seq_length 128 \
   --per_gpu_train_batch_size 32 \
-  --per_gpu_eval_batch_size 32 \
+  --per_instance_eval_batch_size 32 \
   --learning_rate 2e-5 \
   --save_steps 2000 \
   --num_train_epochs 50 \

@@ -31,8 +31,8 @@
         description: Batch size per GPU/CPU for training.
         type: integer
         default: 8
-      - name: per_gpu_eval_batch_size
-        pass-as: --per_gpu_eval_batch_size={v}
+      - name: per_instance_eval_batch_size
+        pass-as: --per_instance_eval_batch_size={v}
         description: Batch size per GPU/CPU for evaluation.
         type: integer
         default: 8

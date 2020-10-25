@@ -65,7 +65,7 @@ python -m torch.distributed.launch --nproc_per_node=8 ./examples/question-answer
     --max_seq_length 384 \
     --doc_stride 128 \
     --output_dir ./examples/models/wwm_uncased_finetuned_squad/ \
-    --per_gpu_eval_batch_size=3   \
+    --per_instance_eval_batch_size=3   \
     --per_gpu_train_batch_size=3   \
 ```
 
@@ -100,7 +100,7 @@ python run_squad.py \
     --max_seq_length 384 \
     --doc_stride 128 \
     --output_dir ./wwm_cased_finetuned_squad/ \
-    --per_gpu_eval_batch_size=4  \
+    --per_instance_eval_batch_size=4  \
     --per_gpu_train_batch_size=4   \
     --save_steps 5000
 ```
@@ -123,7 +123,7 @@ python run_squad.py \
     --max_seq_length 384 \
     --doc_stride 128 \
     --output_dir ./wwm_cased_finetuned_squad/ \
-    --per_gpu_eval_batch_size=2  \
+    --per_instance_eval_batch_size=2  \
     --per_gpu_train_batch_size=2   \
     --save_steps 5000
 ```
@@ -168,7 +168,7 @@ python run_tf_squad.py \
     --max_seq_length 384 \
     --num_train_epochs 2 \
     --per_gpu_train_batch_size 8 \
-    --per_gpu_eval_batch_size 16 \
+    --per_instance_eval_batch_size 16 \
     --do_train \
     --logging_dir logs \    
     --logging_steps 10 \

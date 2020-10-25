@@ -275,7 +275,7 @@ def evaluate(args, model, tokenizer, prefix=""):
         if not os.path.exists(eval_output_dir) and args.local_rank in [-1, 0]:
             os.makedirs(eval_output_dir)
 
-        args.eval_batch_size = args.per_gpu_eval_batch_size * max(1, args.n_gpu)
+        args.eval_batch_size = args.per_instance_eval_batch_size * max(1, args.n_gpu)
         # Note that DistributedSampler samples randomly
         eval_sampler = SequentialSampler(eval_dataset)
         eval_dataloader = DataLoader(eval_dataset, sampler=eval_sampler, batch_size=args.eval_batch_size)
@@ -475,7 +475,7 @@ def main():
         "--per_gpu_train_batch_size", default=8, type=int, help="Batch size per GPU/CPU for training.",
     )
     parser.add_argument(
-        "--per_gpu_eval_batch_size", default=1, type=int, help="Batch size per GPU/CPU for evaluation.",
+        "--per_instance_eval_batch_size", default=1, type=int, help="Batch size per GPU/CPU for evaluation.",
     )
     parser.add_argument(
         "--gradient_accumulation_steps",
@@ -596,7 +596,7 @@ def main():
     label_list = processor.get_labels()
     num_labels = len(label_list)
 
-    if args.patience != "0" and args.per_gpu_eval_batch_size != 1:
+    if args.patience != "0" and args.per_instance_eval_batch_size != 1:
         raise ValueError("The eval batch size must be 1 with PABEE inference on.")
 
     # Load pretrained model and tokenizer

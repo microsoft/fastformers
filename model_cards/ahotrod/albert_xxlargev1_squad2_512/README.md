@@ -49,7 +49,7 @@ CUDA_VISIBLE_DEVICES=0 python ${RUN_SQUAD_DIR}/run_squad.py \
 --version_2_with_negative \
 --do_lower_case \
 --max_seq_length 512 \
---per_gpu_eval_batch_size 48 \
+--per_instance_eval_batch_size 48 \
 --output_dir ${MODEL_PATH}
 ```
 

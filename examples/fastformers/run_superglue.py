@@ -625,7 +625,7 @@ def evaluate(args, task_name, model, tokenizer, split="dev", prefix="", use_tqdm
     if args.fp16:
         model.half()
 
-    args.eval_batch_size = args.per_gpu_eval_batch_size * max(1, args.n_gpu)
+    args.eval_batch_size = args.per_instance_eval_batch_size * max(1, args.n_gpu)
     # Note that DistributedSampler samples randomly
     eval_sampler = SequentialSampler(eval_dataset)
     eval_dataloader = DataLoader(eval_dataset, sampler=eval_sampler, batch_size=args.eval_batch_size)
@@ -650,7 +650,10 @@ def evaluate(args, task_name, model, tokenizer, split="dev", prefix="", use_tqdm
         guids = batch[-1]
 
         max_seq_length = batch[0].size(1)
-        batch_seq_length = torch.max(batch[-2], 0)[0].item()
+        if args.use_fixed_seq_length: # no dynamic sequence length
+            batch_seq_length = max_seq_length
+        else:
+            batch_seq_length = torch.max(batch[-2], 0)[0].item()
 
         if batch_seq_length < max_seq_length:
             inputs = {"input_ids": batch[0][:,:batch_seq_length].contiguous(),
@@ -745,7 +748,7 @@ def prune_rewire(args, task_name, model, tokenizer, prefix="", use_tqdm=True):
     if not os.path.exists(args.output_dir) and args.local_rank in [-1, 0]:
         os.makedirs(args.output_dir)
 
-    args.eval_batch_size = args.per_gpu_eval_batch_size * max(1, args.n_gpu)
+    args.eval_batch_size = args.per_instance_eval_batch_size * max(1, args.n_gpu)
     # Note that DistributedSampler samples randomly
     eval_sampler = SequentialSampler(eval_dataset)
     eval_dataloader = DataLoader(eval_dataset, sampler=eval_sampler, batch_size=args.eval_batch_size)
@@ -900,7 +903,7 @@ def prune_rewire(args, task_name, model, tokenizer, prefix="", use_tqdm=True):
     from pathlib import Path
     Path(args.output_dir + "/pruned_" + str(int(args.target_num_heads)) + "_" + str(int(args.target_ffn_dim))).mkdir(exist_ok=True)
 
-    model.config.hidden_act = 'relu'
+    model.config.hidden_act = 'relu'    # use ReLU activation for the pruned models.
     model.config.num_attention_heads = min([num_heads, args.target_num_heads])
     model.config.intermediate_size = layers._modules['0'].intermediate.dense.weight.size(0)
     model.config.save_pretrained(args.output_dir + "/pruned_" + str(int(args.target_num_heads)) + "_" + str(int(args.target_ffn_dim)))
@@ -999,7 +1002,7 @@ def evaluate_ort_parallel(args, task_name, onnx_session_options, tokenizer, spli
     if not os.path.exists(args.output_dir) and args.local_rank in [-1, 0]:
         os.makedirs(args.output_dir)
 
-    args.eval_batch_size = args.per_gpu_eval_batch_size * max(1, args.n_gpu)
+    args.eval_batch_size = args.per_instance_eval_batch_size * max(1, args.n_gpu)
     eval_sampler = SequentialSampler(eval_dataset)
     eval_dataloader = DataLoader(eval_dataset, sampler=eval_sampler, batch_size=args.eval_batch_size)
 
@@ -1016,9 +1019,6 @@ def evaluate_ort_parallel(args, task_name, onnx_session_options, tokenizer, spli
     assert num_instances <= num_cores
 
     def _worker_proc(input_queue, results_q):
-        # torch.set_num_interop_threads(1)
-        # torch.set_num_threads(threads_per_instance)
-        # torch.set_grad_enabled(grad_enabled)
         from onnxruntime import ExecutionMode, InferenceSession, SessionOptions
 
         onnx_session = InferenceSession(args.model_name_or_path + '/model.onnx', onnx_session_options)
@@ -1042,9 +1042,9 @@ def evaluate_ort_parallel(args, task_name, onnx_session_options, tokenizer, spli
         p.start()
         # pin processes to cores
         lpids = ''
-        for j in range(args.threads_per_instance):
-            lpids += str(processor_list[i*args.threads_per_instance + j])
-            if j < args.threads_per_instance - 1:
+        for j in range(threads_per_instance):
+            lpids += str(processor_list[i*threads_per_instance + j])
+            if j < threads_per_instance - 1:
                 lpids += ','
         os.system("taskset -p -c " + lpids + " " + str(p.pid))
 
@@ -1106,7 +1106,7 @@ def evaluate_ort_parallel(args, task_name, onnx_session_options, tokenizer, spli
 
     assert len(ex_ids) == batch_id
     print("############## Average latency: ", str(total_time / batch_id))
-    print("############## Total time for inference (wallclock time): ", str(time.time() - wallclock_start))
+    print("############## Total time spent (wallclock time): ", str(time.time() - wallclock_start))
 
     ex_ids = np.concatenate(ex_ids, axis=0)
     if args.output_mode in ["classification", "span_classification"] and args.task_name not in ["record"]:
@@ -1406,13 +1406,13 @@ def convert_model_to_fp16(args):
     model.half()
 
     from pathlib import Path
-    Path(args.output_dir + "/fp16").mkdir(exist_ok=True)
-    model.save_pretrained(args.output_dir + "/fp16")
-    tokenizer.save_pretrained(args.output_dir + "/fp16")
-    config.save_pretrained(args.output_dir + "/fp16")
+    Path(args.model_name_or_path + "/fp16").mkdir(exist_ok=True)
+    model.save_pretrained(args.model_name_or_path + "/fp16")
+    tokenizer.save_pretrained(args.model_name_or_path + "/fp16")
+    config.save_pretrained(args.model_name_or_path + "/fp16")
 
     print(">>>>>>> Model converted into fp16 and saved into: ",
-          (args.output_dir + "/fp16"))
+          (args.model_name_or_path + "/fp16"))
 
 
 def main():
@@ -1465,7 +1465,7 @@ def main():
         "--output_dir",
         default=None,
         type=str,
-        required=True,
+        required=False,
         help="The output directory where the model predictions and checkpoints will be written.",
     )
 
@@ -1537,7 +1537,7 @@ def main():
         "--per_gpu_train_batch_size", default=8, type=int, help="Batch size per GPU/CPU for training.",
     )
     parser.add_argument(
-        "--per_gpu_eval_batch_size", default=8, type=int, help="Batch size per GPU/CPU for evaluation.",
+        "--per_instance_eval_batch_size", default=8, type=int, help="Batch size per GPU/CPU for evaluation.",
     )
     parser.add_argument(
         "--gradient_accumulation_steps",
@@ -1548,12 +1548,6 @@ def main():
     parser.add_argument("--learning_rate", default=5e-5, type=float, help="The initial learning rate for Adam.")
     parser.add_argument("--weight_decay", default=0.0, type=float, help="Weight decay if we apply some.")
     parser.add_argument("--adam_epsilon", default=1e-8, type=float, help="Epsilon for Adam optimizer.")
-    parser.add_argument(
-        "--adam_beta1", default=1e-8, type=float, help="Epsilon for Adam optimizer. Currently not used. "
-    )
-    parser.add_argument(
-        "--adam_beta2", default=1e-8, type=float, help="Epsilon for Adam optimizer. Currently not used. "
-    )
     parser.add_argument("--max_grad_norm", default=1.0, type=float, help="Max gradient norm.")
     parser.add_argument(
         "--num_train_epochs", default=3.0, type=float, help="Total number of training epochs to perform.",
@@ -1612,6 +1606,7 @@ def main():
     parser.add_argument("--save_latest", action="store_true", help="Save the last checkpoint regardless of the score.")
     parser.add_argument("--skip_graph_optimization", action="store_true", help="Whether to skip ONNX graph optimization.")
     parser.add_argument("--skip_quantization", action="store_true", help="Whether to skip 8-bit quantization.")
+    parser.add_argument("--use_fixed_seq_length", action="store_true", help="Whether to use fixed sequence length.")
     args = parser.parse_args()
 
     # Setup logging

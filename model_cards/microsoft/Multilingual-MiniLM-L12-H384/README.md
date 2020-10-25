@@ -50,7 +50,7 @@ python ./examples/run_xnli.py --model_type minilm \
  --per_gpu_train_batch_size 128 \
  --learning_rate 5e-5 \
  --num_train_epochs 5 \
- --per_gpu_eval_batch_size 32 \
+ --per_instance_eval_batch_size 32 \
  --weight_decay 0.001 \
  --warmup_steps 500 \
  --save_steps 1500 \

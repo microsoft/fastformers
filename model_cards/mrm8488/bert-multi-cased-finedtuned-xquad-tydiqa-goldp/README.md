@@ -39,7 +39,7 @@ python run_squad.py \
   --train_file /content/dataset/train.json \
   --predict_file /content/dataset/dev.json \
   --per_gpu_train_batch_size 24 \
-  --per_gpu_eval_batch_size 24 \
+  --per_instance_eval_batch_size 24 \
   --learning_rate 3e-5 \
   --num_train_epochs 2.5 \
   --max_seq_length 384 \

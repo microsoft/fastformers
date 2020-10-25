@@ -37,7 +37,7 @@ python ${EXAMPLES}/run_squad.py \
   --doc_stride 128 \
   --per_gpu_train_batch_size 8 \
   --gradient_accumulation_steps 6 \
-  --per_gpu_eval_batch_size 48 \
+  --per_instance_eval_batch_size 48 \
   --threads 12 \
   --logging_steps 50 \
   --save_steps 2000 \

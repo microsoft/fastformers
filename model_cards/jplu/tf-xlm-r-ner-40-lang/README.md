@@ -557,7 +557,7 @@ python run_tf_ner.py \
 --max-seq-length 128 \
 --num_train_epochs 2 \
 --per_gpu_train_batch_size 16 \
---per_gpu_eval_batch_size 32 \
+--per_instance_eval_batch_size 32 \
 --do_train \
 --do_eval \
 --logging_dir logs \

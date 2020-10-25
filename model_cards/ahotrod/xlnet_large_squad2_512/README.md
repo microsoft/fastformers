@@ -44,7 +44,7 @@ CUDA_VISIBLE_DEVICES=0 python ${RUN_SQUAD_DIR}/run_squad_II.py \
   --predict_file ${SQUAD_DIR}/dev-v2.0.json \
   --version_2_with_negative \
   --max_seq_length 512 \
-  --per_gpu_eval_batch_size 48 \
+  --per_instance_eval_batch_size 48 \
   --output_dir ${MODEL_PATH}
 ```
 ### using the following system & software:

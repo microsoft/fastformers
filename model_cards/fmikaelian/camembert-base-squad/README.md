@@ -24,7 +24,7 @@ python3 ./examples/question-answering/run_squad.py \
 --max_seq_length 384 \
 --doc_stride 128 \
 --output_dir output3 \
---per_gpu_eval_batch_size=3 \
+--per_instance_eval_batch_size=3 \
 --per_gpu_train_batch_size=3 \
 --save_steps 10000
 ``` 

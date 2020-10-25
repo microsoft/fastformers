@@ -18,7 +18,7 @@ python ./examples/multiple-choice/run_multiple_choice.py \
 --num_train_epochs 3 \
 --max_seq_length 80 \
 --output_dir models_bert/swag_base \
---per_gpu_eval_batch_size=16 \
+--per_instance_eval_batch_size=16 \
 --per_device_train_batch_size=16 \
 --gradient_accumulation_steps 2 \
 --overwrite_output
@@ -45,7 +45,7 @@ python ./examples/multiple-choice/run_tf_multiple_choice.py \
 --num_train_epochs 3 \
 --max_seq_length 80 \
 --output_dir models_bert/swag_base \
---per_gpu_eval_batch_size=16 \
+--per_instance_eval_batch_size=16 \
 --per_device_train_batch_size=16 \
 --logging-dir logs \
 --gradient_accumulation_steps 2 \

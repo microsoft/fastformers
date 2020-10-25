@@ -13,7 +13,7 @@ It was trained with these params:
     --do_lower_case \
     --data_dir /content/glue_data/STS-B/ \
     --max_seq_length 128 \
-    --per_gpu_eval_batch_size=8   \
+    --per_instance_eval_batch_size=8   \
     --per_gpu_train_batch_size=8   \
     --learning_rate 2e-5 \
     --num_train_epochs 3.0 \

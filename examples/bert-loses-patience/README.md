@@ -23,7 +23,7 @@ python ./run_glue_with_pabee.py \
   --data_dir "$GLUE_DIR/$TASK_NAME" \
   --max_seq_length 128 \
   --per_gpu_train_batch_size 32 \
-  --per_gpu_eval_batch_size 32 \
+  --per_instance_eval_batch_size 32 \
   --learning_rate 2e-5 \
   --save_steps 50 \
   --logging_steps 50 \
@@ -47,7 +47,7 @@ python ./run_glue_with_pabee.py \
   --do_lower_case \
   --data_dir "$GLUE_DIR/$TASK_NAME" \
   --max_seq_length 128 \
-  --per_gpu_eval_batch_size 1 \
+  --per_instance_eval_batch_size 1 \
   --learning_rate 2e-5 \
   --logging_steps 50 \
   --num_train_epochs 15 \
