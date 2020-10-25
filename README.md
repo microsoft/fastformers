@@ -1,4 +1,6 @@
-FastFormers provides a set of recipes and methods to achieve highly efficient inference of Transformer models for Natural Language Understanding (NLU). The details of the methods and analyses are described in the paper *FastFormers: Highly Efficient Transformer Models for Natural Language Understanding* paper(**The link address will be updated**).
+# FastFormers
+
+*FastFormers* provides a set of recipes and methods to achieve highly efficient inference of Transformer models for Natural Language Understanding (NLU). The details of the methods and analyses are described in the paper *FastFormers: Highly Efficient Transformer Models for Natural Language Understanding* paper(**The link address will be updated**).
 
 
 ### Notes
@@ -40,6 +42,8 @@ pip install .
 ## Run the demo systems
 
 All the models used to benchmark Table 3 in the paper are publicly shared. You can use below commands to reproduce the results. Table 3 measurement was done on one of the Azure F16s_v2 instances.
+
+![Table3](examples/fastformers/table3.png)
 
 The [installation step](#installation) needs to be done before proceeding.
 
