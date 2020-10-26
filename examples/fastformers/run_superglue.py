@@ -1,4 +1,11 @@
 # coding=utf-8
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+#
+# All the modifications on top of 
+# https://github.com/W4ngatang/transformers/blob/superglue/examples/run_superglue.py 
+# are under the MIT license by Microsoft.
+#
 # Copyright 2018 The Google AI Language Team Authors and The HuggingFace Inc. team.
 # Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
 #

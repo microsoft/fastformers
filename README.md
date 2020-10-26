@@ -213,3 +213,11 @@ OMP_NUM_THREADS=1 python3 examples/fastformers/run_superglue.py --model_type ber
                                   --do_lower_case --max_seq_length 512 --use_onnxrt \
                                   --threads_per_instance 1 --no_cuda
 ```
+
+## Code of Conduct
+
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).

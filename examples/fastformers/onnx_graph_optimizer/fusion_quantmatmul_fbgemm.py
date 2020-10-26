@@ -2,7 +2,6 @@
 # Copyright (c) Microsoft Corporation.  All rights reserved.
 # Licensed under the MIT License.
 #--------------------------------------------------------------------------
-
 from logging import getLogger
 from onnx import helper, numpy_helper
 from .onnx_model import OnnxModel
