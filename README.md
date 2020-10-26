@@ -59,55 +59,61 @@ wget https://github.com/microsoft/fastformers/archive/v0.1/
 
 2. Run the teacher model (BERT-base) baseline
 ```bash
-python3 examples/fastformers/run_superglue.py --model_type bert --model_name_or_path ${teacher_model} \
-                                  --task_name BoolQ --output_dir ${out_dir} --do_eval  \
-                                  --data_dir ${data_dir} --per_instance_eval_batch_size 1 \
-                                  --use_fixed_seq_length --do_lower_case --max_seq_length 512 \
-                                  --no_cuda
+python3 examples/fastformers/run_superglue.py \
+        --model_type bert --model_name_or_path ${teacher_model} \
+        --task_name BoolQ --output_dir ${out_dir} --do_eval  \
+        --data_dir ${data_dir} --per_instance_eval_batch_size 1 \
+        --use_fixed_seq_length --do_lower_case --max_seq_length 512 \
+        --no_cuda
 ```
 
 3. Run the teacher model (BERT-base) with dynamic sequence length
 ```bash
-python3 examples/fastformers/run_superglue.py --model_type bert --model_name_or_path ${teacher_model} \
-                                  --task_name BoolQ --output_dir ${out_dir} --do_eval  \
-                                  --data_dir ${data_dir} --per_instance_eval_batch_size 1 \
-                                  --do_lower_case --max_seq_length 512 --no_cuda
+python3 examples/fastformers/run_superglue.py \
+        --model_type bert --model_name_or_path ${teacher_model} \
+        --task_name BoolQ --output_dir ${out_dir} --do_eval  \
+        --data_dir ${data_dir} --per_instance_eval_batch_size 1 \
+        --do_lower_case --max_seq_length 512 --no_cuda
 ```
 
 4. Run the distilled student model (PyTorch)
 ```bash
-python3 examples/fastformers/run_superglue.py --model_type bert --model_name_or_path ${student_model} \
-                                  --task_name BoolQ --output_dir ${out_dir} --do_eval  \
-                                  --data_dir ${data_dir} --per_instance_eval_batch_size 1 \
-                                  --do_lower_case --max_seq_length 512 --no_cuda
+python3 examples/fastformers/run_superglue.py \
+        --model_type bert --model_name_or_path ${student_model} \
+        --task_name BoolQ --output_dir ${out_dir} --do_eval  \
+        --data_dir ${data_dir} --per_instance_eval_batch_size 1 \
+        --do_lower_case --max_seq_length 512 --no_cuda
 ```
 
 5. Run the distilled student with 8-bit quantization (onnxruntime)
 ```bash
-python3 examples/fastformers/run_superglue.py --model_type bert --model_name_or_path ${student_model} \
-                                  --task_name BoolQ --output_dir ${out_dir} --do_eval \
-                                  --data_dir ${data_dir} --per_instance_eval_batch_size 1 \
-                                  --do_lower_case --max_seq_length 512 --use_onnxrt --no_cuda
+python3 examples/fastformers/run_superglue.py \
+        --model_type bert --model_name_or_path ${student_model} \
+        --task_name BoolQ --output_dir ${out_dir} --do_eval \
+        --data_dir ${data_dir} --per_instance_eval_batch_size 1 \
+        --do_lower_case --max_seq_length 512 --use_onnxrt --no_cuda
 ```
 
 6. Run the distilled student with 8-bit quantization + multi-intance inference (onnxruntime)
 ```bash
-OMP_NUM_THREADS=1 python3 examples/fastformers/run_superglue.py --model_type bert
-                                  --model_name_or_path ${student_model} \
-                                  --task_name BoolQ --output_dir ${out_dir} --do_eval \
-                                  --data_dir ${data_dir} --per_instance_eval_batch_size 1 \
-                                  --do_lower_case --max_seq_length 512 --use_onnxrt \
-                                  --threads_per_instance 1 --no_cuda
+OMP_NUM_THREADS=1 python3 examples/fastformers/run_superglue.py \
+                          --model_type bert \
+                          --model_name_or_path ${student_model} \
+                          --task_name BoolQ --output_dir ${out_dir} --do_eval \
+                          --data_dir ${data_dir} --per_instance_eval_batch_size 1 \
+                          --do_lower_case --max_seq_length 512 --use_onnxrt \
+                          --threads_per_instance 1 --no_cuda
 ```
 
 7. Run the distilled + pruned student with 8-bit quantization + multi-intance inference (onnxruntime)
 ```bash
-OMP_NUM_THREADS=1 python3 examples/fastformers/run_superglue.py --model_type bert
-                                  --model_name_or_path ${pruned_student_model} \
-                                  --task_name BoolQ --output_dir ${out_dir} --do_eval \
-                                  --data_dir ${data_dir} --per_instance_eval_batch_size 1 \
-                                  --do_lower_case --max_seq_length 512 --use_onnxrt \
-                                  --threads_per_instance 1 --no_cuda
+OMP_NUM_THREADS=1 python3 examples/fastformers/run_superglue.py \
+                          --model_type bert \
+                          --model_name_or_path ${pruned_student_model} \
+                          --task_name BoolQ --output_dir ${out_dir} --do_eval \
+                          --data_dir ${data_dir} --per_instance_eval_batch_size 1 \
+                          --do_lower_case --max_seq_length 512 --use_onnxrt \
+                          --threads_per_instance 1 --no_cuda
 ```
 
 
@@ -125,18 +131,19 @@ Currently, BERT and RoBERTa models are supported.
 *Tip 3.* Depending on the task and the models used, you can add --do_lower_case if it give a better accuracy.
 
 ```bash
-python examples/fastformers/run_superglue.py --data_dir ${data_dir} --task_name ${task} \
-                        --output_dir ${out_dir} --model_type ${model_type}
-                        --model_name_or_path ${model} \
-                        --use_gpuid ${gpuid} --seed ${seed} \
-                        --do_train --max_seq_length ${seq_len_train} \
-                        --do_eval --eval_and_save_steps ${eval_freq} --save_only_best \
-                        --learning_rate 0.00001 \
-                        --warmup_ratio 0.06 --weight_decay 0.01 \
-                        --per_gpu_train_batch_size 4 \
-                        --gradient_accumulation_steps 1 \
-                        --logging_steps 100 --num_train_epochs 10 \
-                        --overwrite_output_dir --per_instance_eval_batch_size 8
+python3 examples/fastformers/run_superglue.py \
+        --data_dir ${data_dir} --task_name ${task} \
+        --output_dir ${out_dir} --model_type ${model_type} \
+        --model_name_or_path ${model} \
+        --use_gpuid ${gpuid} --seed ${seed} \
+        --do_train --max_seq_length ${seq_len_train} \
+        --do_eval --eval_and_save_steps ${eval_freq} --save_only_best \
+        --learning_rate 0.00001 \
+        --warmup_ratio 0.06 --weight_decay 0.01 \
+        --per_gpu_train_batch_size 4 \
+        --gradient_accumulation_steps 1 \
+        --logging_steps 100 --num_train_epochs 10 \
+        --overwrite_output_dir --per_instance_eval_batch_size 8
 ```
 
 ### Distilling models
@@ -148,20 +155,21 @@ This command is also used to distill non-pruned models into pruned models.
 This command always uses task specific logit loss between teacher and student models for the student training. You can add addtional losses for hidden states (including token mbedding) and attentions between teacher and student. To use hidden states and attentions distillation, the number of teacher layers should be multiples of the number of student layers.
 
 ```bash
-python examples/fastformers/run_superglue.py --data_dir ${data_dir} --task_name ${task} \
-                        --output_dir ${out_dir} --teacher_model_type ${teacher_model_type} \
-                        --teacher_model_name_or_path ${teacher_model} \
-                        --model_type ${student_model_type} --model_name_or_path ${student_model} \
-                        --use_gpuid ${gpuid} --seed ${seed} \
-                        --do_train --max_seq_length ${seq_len_train} \
-                        --do_eval --eval_and_save_steps ${eval_freq} --save_only_best \
-                        --learning_rate 0.00001 \
-                        --warmup_ratio 0.06 --weight_decay 0.01 \
-                        --per_gpu_train_batch_size 4 \
-                        --gradient_accumulation_steps 1 \
-                        --logging_steps 100 --num_train_epochs 10 \
-                        --overwrite_output_dir --per_instance_eval_batch_size 8 \
-                        --state_loss_ratio 0.1
+python3 examples/fastformers/run_superglue.py \
+        --data_dir ${data_dir} --task_name ${task} \
+        --output_dir ${out_dir} --teacher_model_type ${teacher_model_type} \
+        --teacher_model_name_or_path ${teacher_model} \
+        --model_type ${student_model_type} --model_name_or_path ${student_model} \
+        --use_gpuid ${gpuid} --seed ${seed} \
+        --do_train --max_seq_length ${seq_len_train} \
+        --do_eval --eval_and_save_steps ${eval_freq} --save_only_best \
+        --learning_rate 0.00001 \
+        --warmup_ratio 0.06 --weight_decay 0.01 \
+        --per_gpu_train_batch_size 4 \
+        --gradient_accumulation_steps 1 \
+        --logging_steps 100 --num_train_epochs 10 \
+        --overwrite_output_dir --per_instance_eval_batch_size 8 \
+        --state_loss_ratio 0.1
 ```
 
 ### Pruning models
@@ -171,12 +179,13 @@ This command performs structured pruning on the models described in the paper. I
 To get better accuracy, you can do another round of knowledge distillation after the pruning.
 
 ```bash
-python examples/fastformers/run_superglue.py --data_dir ${data_dir} --task_name ${task} \
-                        --output_dir ${out_dir} --model_type ${model_type} \
-                        --model_name_or_path ${model} --do_eval \
-                        --do_prune --max_seq_length ${seq_len_train} \
-                        --per_instance_eval_batch_size 1 \
-                        --target_num_heads 8 --target_ffn_dim 600
+python3 examples/fastformers/run_superglue.py \
+        --data_dir ${data_dir} --task_name ${task} \
+        --output_dir ${out_dir} --model_type ${model_type} \
+        --model_name_or_path ${model} --do_eval \
+        --do_prune --max_seq_length ${seq_len_train} \
+        --per_instance_eval_batch_size 1 \
+        --target_num_heads 8 --target_ffn_dim 600
 ```
 
 ### Optimizing models on CPU (8-bit integer quantization + onnxruntime)
@@ -184,10 +193,11 @@ python examples/fastformers/run_superglue.py --data_dir ${data_dir} --task_name 
 This command convert your PyTorch transformers models into optimized onnx format with 8-bit quantization. The converted ONNX model is saved in the directory which the original PyTorch model is located.
 
 ```bash
-python examples/fastformers/run_superglue.py --task_name ${task} \
-                        --model_type ${model_type} \
-                        --model_name_or_path ${model} \
-                        --convert_onnx
+python3 examples/fastformers/run_superglue.py \
+        --task_name ${task} \
+        --model_type ${model_type} \
+        --model_name_or_path ${model} \
+        --convert_onnx
 ```
 
 ### Optimizing models on GPU (16-bit floating point conversion)
@@ -195,10 +205,11 @@ python examples/fastformers/run_superglue.py --task_name ${task} \
 This command convert your PyTorch transformers models into 16-bit floating point model (PyTorch). This creates a new directory named `fp16` in the directory the original model is located. Then, the converted fp16 model and all necessary files are saved to the directory.
 
 ```bash
-python examples/fastformers/run_superglue.py --task_name ${task} \
-                        --model_type ${model_type} \
-                        --model_name_or_path ${model} \
-                        --convert_fp16
+python3 examples/fastformers/run_superglue.py \
+        --task_name ${task} \
+        --model_type ${model_type} \
+        --model_name_or_path ${model} \
+        --convert_fp16
 ```
 
 ### Evaluating models
@@ -206,12 +217,13 @@ python examples/fastformers/run_superglue.py --task_name ${task} \
 This command evalutes various models with PyTorch or onnxruntime engine on the give tasks. For more detailed usage, please refer to the [demo section](#run-the-demo-systems).
 
 ```bash
-OMP_NUM_THREADS=1 python3 examples/fastformers/run_superglue.py --model_type bert
-                                  --model_name_or_path ${pruned_student_model} \
-                                  --task_name BoolQ --output_dir ${out_dir} --do_eval \
-                                  --data_dir ${data_dir} --per_instance_eval_batch_size 1 \
-                                  --do_lower_case --max_seq_length 512 --use_onnxrt \
-                                  --threads_per_instance 1 --no_cuda
+OMP_NUM_THREADS=1 python3 examples/fastformers/run_superglue.py \
+                          --model_type bert \
+                          --model_name_or_path ${pruned_student_model} \
+                          --task_name BoolQ --output_dir ${out_dir} --do_eval \
+                          --data_dir ${data_dir} --per_instance_eval_batch_size 1 \
+                          --do_lower_case --max_seq_length 512 --use_onnxrt \
+                          --threads_per_instance 1 --no_cuda
 ```
 
 ## Code of Conduct
