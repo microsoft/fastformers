@@ -1,6 +1,6 @@
 # FastFormers
 
-**FastFormers** provides a set of recipes and methods to achieve highly efficient inference of Transformer models for Natural Language Understanding (NLU) including the demo models with **233.87x speed-up**. The details of the methods and analyses are described in the paper *FastFormers: Highly Efficient Transformer Models for Natural Language Understanding* [paper](https://arxiv.org/abs/2010.13382).
+**FastFormers** provides a set of recipes and methods to achieve highly efficient inference of Transformer models for Natural Language Understanding (NLU) including the demo models showing **233.87x speed-up** (Yes, 233x on CPU with the multi-head self-attentive Transformer architecture. This is not an LSTM or an RNN). The details of the methods and analyses are described in the paper *FastFormers: Highly Efficient Transformer Models for Natural Language Understanding* [paper](https://arxiv.org/abs/2010.13382).
 
 
 ### Notes
