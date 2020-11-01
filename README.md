@@ -34,7 +34,7 @@ pip uninstall transformers -y
 pip uninstall onnxruntime -y
 git clone https://github.com/microsoft/fastformers
 cd fastformers
-pip install examples/fastformers/onnxruntime-1.4.0-cp36-cp36m-linux_x86_64.whl --user
+pip install examples/fastformers/onnxruntime/onnxruntime-1.4.0-cp36-cp36m-linux_x86_64.whl --user
 pip install .
 ```
 
