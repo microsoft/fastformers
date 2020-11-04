@@ -5,6 +5,7 @@
 
 ### Notes
 
+- **(Nov. 4, 2020) We are actively working with Hugging Face and onnxruntime team so that you can utilize the features out of the box of huggingface's transformers and onnxruntime. Please stay tuned.**
 - With this repository, you can replicate the results presented in the *FastFormers* paper.
 - The demo models of *FastFormers* are implemented with [SuperGLUE](https://super.gluebenchmark.com/) benchmark. Data processing pipeline is based on Alex Wang's implementation [reference code](https://github.com/W4ngatang/transformers/tree/superglue) for [SustaiNLP](https://sites.google.com/view/sustainlp2020/home) which is a fork from HuggingFace's [transformers](https://github.com/huggingface/transformers) repository. 
 - This repository is built on top of several open source projects including [transformers](https://github.com/huggingface/transformers) from HuggingFace, [onnxruntime](https://github.com/Microsoft/onnxruntime), [transformers](https://github.com/W4ngatang/transformers/tree/superglue) from Alex Wang, [FBGEMM](https://github.com/pytorch/FBGEMM), [TinyBERT](https://github.com/huawei-noah/Pretrained-Language-Model/tree/master/TinyBERT) and etc.
