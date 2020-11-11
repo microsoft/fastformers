@@ -15,7 +15,7 @@
 
 - *FastFormers* currently only supports Linux operating systems.
 - CPU requirements:
-  * Intel CPUs equipped with at least one, or both of `AVX2` and `AVX512` instruction sets are required. To get the full speed improvements and accuracy, `AVX512` instruction set is required.
+  * CPUs equipped with at least one, or both of `AVX2` and `AVX512` instruction sets are required. To get the full speed improvements and accuracy, `AVX512` instruction set is required. We have tested our runtime on Intel CPUs.
 - GPU requirements:
   * To utilize 16-bit floating point speed-up, GPUs with Volta or later architectures are required.
 - This repository is a branch of [transformers](https://github.com/huggingface/transformers), so you need to uninstall pre-existing transformers in your python environment. Also, it utilizes a custom branch of [onnxruntime](https://github.com/Microsoft/onnxruntime), so any existing onnxruntime in your environment needs to be uninstalled before installing and utilizing this repository. We are trying to merge our customized code into the public main branch of transformers and onnxruntime.
