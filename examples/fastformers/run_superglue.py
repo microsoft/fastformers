@@ -1333,8 +1333,8 @@ def optimize_onnx_graph(args, config):
     """ Optimize ONNX model with graph optimizations and quantizations """
     import inspect
 
-    from onnx_graph_optimizer.optimizer import optimize_model
-    from onnx_graph_optimizer.onnx_model_bert import BertOptimizationOptions
+    from onnxruntime.transformers.optimizer import optimize_model
+    from onnxruntime.transformers.onnx_model_bert import BertOptimizationOptions
 
     # various graph optimization options.
     # ZCode uses all the optimizations by default.
@@ -1343,27 +1343,39 @@ def optimize_onnx_graph(args, config):
     optimization_options.enable_gelu = True
     optimization_options.enable_layer_norm = True
     optimization_options.enable_attention = True
-    optimization_options.enable_attention_fbgemm = False if args.skip_quantization else True
     optimization_options.enable_skip_layer_norm = True
     optimization_options.enable_embed_layer_norm = True
     optimization_options.enable_bias_skip_layer_norm = True
     optimization_options.enable_bias_gelu = True
     optimization_options.enable_gelu_approximation = False
-    optimization_options.enable_quantize_matmul = False if args.skip_quantization else True
 
     logger.warning(">>>>>>> Start optimizing ONNX graph")
     optimizer = optimize_model(args.model_name_or_path + "/model.onnx",
-                   model_type='bert',
-                   num_heads=config.num_attention_heads,
-                   head_size=config.attention_head_size,
-                   hidden_size=config.hidden_size,
-                   optimization_options=optimization_options,
-                   opt_level=0,
-                   use_gpu=False,
-                   only_onnxruntime=False)
+                               model_type='bert',
+                               num_heads=config.num_attention_heads,
+                               hidden_size=config.hidden_size,
+                               optimization_options=optimization_options,
+                               opt_level=0,
+                               use_gpu=False,
+                               only_onnxruntime=False)
 
     optimizer.save_model_to_file(args.model_name_or_path + "/model.onnx")
-    logger.warning(">>>>>>> Finished optimizing ONNX graph")
+
+    # whether to skip quantization
+    if args.skip_quantization:
+        logger.warning(">>>>>>> Finished optimizing ONNX graph without quantization")
+    else:
+        from onnxruntime.quantization import quantize_dynamic, QuantType
+        import onnx
+        onnx_opt_model = onnx.load(args.model_name_or_path + "/model.onnx")
+        quantize_dynamic(args.model_name_or_path + "/model.onnx",
+                         args.model_name_or_path + "/model.onnx",
+                         weight_type=QuantType.QInt8,
+                         per_channel=True,
+                         reduce_range=True,
+                         nodes_to_exclude=['Gemm_398_MatMul', 'Gemm_396_MatMul', 'EmbedLayerNormalization_1'],
+                         extra_options={'WeightSymmetric': False, 'MatMulConstBOnly': True})
+        logger.warning(">>>>>>> Finished optimizing ONNX graph with quantization")
 
 def convert_model_to_fp16(args):
     """Converts a fp32 pytorch model checkpoint to a fp16 checkpoint."""
