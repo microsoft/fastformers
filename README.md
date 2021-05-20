@@ -5,7 +5,8 @@
 
 ### Notes
 
-- **(Nov. 4, 2020) We are actively working with Hugging Face and onnxruntime team so that you can utilize the features out of the box of huggingface's transformers and onnxruntime. Please stay tuned.**
+- **(May 19, 2021) The public onnxruntime now supports all FastFormers models after this commit.** (https://github.com/microsoft/onnxruntime/commit/e9057d2e498e0c9233669cae11223bf4f6896ba6). Special thanks to @yufenglee and onnxruntime team.
+- (Nov. 4, 2020) We are actively working with Hugging Face and onnxruntime team so that you can utilize the features out of the box of huggingface's transformers and onnxruntime. Please stay tuned.
 - With this repository, you can replicate the results presented in the *FastFormers* paper.
 - The demo models of *FastFormers* are implemented with [SuperGLUE](https://super.gluebenchmark.com/) benchmark. Data processing pipeline is based on Alex Wang's implementation [reference code](https://github.com/W4ngatang/transformers/tree/superglue) for [SustaiNLP](https://sites.google.com/view/sustainlp2020/home) which is a fork from HuggingFace's [transformers](https://github.com/huggingface/transformers) repository. 
 - This repository is built on top of several open source projects including [transformers](https://github.com/huggingface/transformers) from HuggingFace, [onnxruntime](https://github.com/Microsoft/onnxruntime), [transformers](https://github.com/W4ngatang/transformers/tree/superglue) from Alex Wang, [FBGEMM](https://github.com/pytorch/FBGEMM), [TinyBERT](https://github.com/huawei-noah/Pretrained-Language-Model/tree/master/TinyBERT) and etc.
@@ -25,17 +26,16 @@
 
 This repo is tested on Python 3.6 and 3.7, PyTorch 1.5.0+.
 
-You need to uninstall pre-existing transformers and onnxruntime packages as this repository uses customized versions of those.
+You need to uninstall pre-existing transformers package as this repository uses customized versions of it.
 
-You need to install PyTorch 1.5.0+. Then, execute following bash commands for Python 3.6. In case your environment has Python 3.7, please change the onnxruntime wheel file name to `onnxruntime-1.4.0-cp37-cp37m-linux_x86_64.whl` and do execute the same commands.
+You need to install PyTorch 1.5.0+. Then, execute following bash commands. You need to install onnxruntime 1.8.0+.
 
 
 ```bash
 pip uninstall transformers -y
-pip uninstall onnxruntime -y
 git clone https://github.com/microsoft/fastformers
 cd fastformers
-pip install examples/fastformers/onnxruntime/onnxruntime-1.4.0-cp36-cp36m-linux_x86_64.whl --user
+pip install onnxruntime==1.8.0 --user --upgrade --no-deps --force-reinstall
 pip install .
 ```
 

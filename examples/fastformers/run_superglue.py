@@ -1352,8 +1352,8 @@ def optimize_onnx_graph(args, config):
     logger.warning(">>>>>>> Start optimizing ONNX graph")
     optimizer = optimize_model(args.model_name_or_path + "/model.onnx",
                                model_type='bert',
-                               num_heads=config.num_attention_heads,
-                               hidden_size=config.hidden_size,
+                               num_heads=0,
+                               hidden_size=0,
                                optimization_options=optimization_options,
                                opt_level=0,
                                use_gpu=False,
@@ -1370,10 +1370,11 @@ def optimize_onnx_graph(args, config):
         onnx_opt_model = onnx.load(args.model_name_or_path + "/model.onnx")
         quantize_dynamic(args.model_name_or_path + "/model.onnx",
                          args.model_name_or_path + "/model.onnx",
+                         op_types_to_quantize=['MatMul', 'Attention'],
                          weight_type=QuantType.QInt8,
                          per_channel=True,
                          reduce_range=True,
-                         nodes_to_exclude=['Gemm_398_MatMul', 'Gemm_396_MatMul', 'EmbedLayerNormalization_1'],
+                         nodes_to_exclude=args.nodes_to_exclude,
                          extra_options={'WeightSymmetric': False, 'MatMulConstBOnly': True})
         logger.warning(">>>>>>> Finished optimizing ONNX graph with quantization")
 
@@ -1626,6 +1627,7 @@ def main():
     parser.add_argument("--skip_graph_optimization", action="store_true", help="Whether to skip ONNX graph optimization.")
     parser.add_argument("--skip_quantization", action="store_true", help="Whether to skip 8-bit quantization.")
     parser.add_argument("--use_fixed_seq_length", action="store_true", help="Whether to use fixed sequence length.")
+    parser.add_argument("--nodes_to_exclude", nargs='*', default=[], help="Nodes to be excluded from quantization")
     args = parser.parse_args()
 
     # Setup logging
