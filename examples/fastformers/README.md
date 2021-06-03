@@ -45,7 +45,7 @@ pip install .
 
 All the models used to benchmark Table 3 in the paper are publicly shared. You can use below commands to reproduce the results. Table 3 measurement was done on one of the Azure F16s_v2 instances.
 
-![Table3](examples/fastformers/table3.png)
+![Table3](table3.png)
 
 The [installation step](#installation) needs to be done before proceeding.
 
