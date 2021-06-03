@@ -54,9 +54,9 @@ The [installation step](#installation) needs to be done before proceeding.
 1. Download demo model files and decompress.
 ```bash
 wget https://github.com/microsoft/fastformers/releases/download/v0.1-model/teacher-bert-base.tar.gz
-wget https://github.com/microsoft/fastformers/releases/download/v0.1-model/student-4L-312.tar.gz
-wget https://github.com/microsoft/fastformers/releases/download/v0.1-model/student-pruned-8h-600.tar.gz
-wget https://github.com/microsoft/fastformers/releases/download/v0.1-model/student-pruned-9h-900.tar.gz
+wget https://github.com/microsoft/fastformers/releases/download/v0.2-model/student-4L-312.tar.gz
+wget https://github.com/microsoft/fastformers/releases/download/v0.2-model/student-pruned-8h-600.tar.gz
+wget https://github.com/microsoft/fastformers/releases/download/v0.2-model/student-pruned-9h-900.tar.gz
 ```
 
 2. Run the teacher model (BERT-base) baseline
