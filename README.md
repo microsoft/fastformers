@@ -5,7 +5,7 @@
 
 ### Notes
 
-- **(May 19, 2021) The public onnxruntime now supports all FastFormers models after this commit.** (https://github.com/microsoft/onnxruntime/commit/e9057d2e498e0c9233669cae11223bf4f6896ba6). Special thanks to @yufenglee and onnxruntime team.
+- **(June 3, 2021) The public onnxruntime (v1.8.0) now supports all FastFormers models.** Special thanks to @yufenglee and onnxruntime team.
 - (Nov. 4, 2020) We are actively working with Hugging Face and onnxruntime team so that you can utilize the features out of the box of huggingface's transformers and onnxruntime. Please stay tuned.
 - With this repository, you can replicate the results presented in the *FastFormers* paper.
 - The demo models of *FastFormers* are implemented with [SuperGLUE](https://super.gluebenchmark.com/) benchmark. Data processing pipeline is based on Alex Wang's implementation [reference code](https://github.com/W4ngatang/transformers/tree/superglue) for [SustaiNLP](https://sites.google.com/view/sustainlp2020/home) which is a fork from HuggingFace's [transformers](https://github.com/huggingface/transformers) repository. 
@@ -19,7 +19,8 @@
   * CPUs equipped with at least one, or both of `AVX2` and `AVX512` instruction sets are required. To get the full speed improvements and accuracy, `AVX512` instruction set is required. We have tested our runtime on Intel CPUs.
 - GPU requirements:
   * To utilize 16-bit floating point speed-up, GPUs with Volta or later architectures are required.
-- This repository is a branch of [transformers](https://github.com/huggingface/transformers), so you need to uninstall pre-existing transformers in your python environment. Also, it utilizes a custom branch of [onnxruntime](https://github.com/Microsoft/onnxruntime), so any existing onnxruntime in your environment needs to be uninstalled before installing and utilizing this repository. We are trying to merge our customized code into the public main branch of transformers and onnxruntime.
+- onnxruntime v1.8.0+ is required to run *FastFormers* models.
+- This repository is a branch of [transformers](https://github.com/huggingface/transformers), so you need to uninstall pre-existing transformers in your python environment.
 
 
 ## Installation
@@ -32,10 +33,10 @@ You need to install PyTorch 1.5.0+. Then, execute following bash commands. You n
 
 
 ```bash
+pip install onnxruntime==1.8.0 --user --upgrade --no-deps --force-reinstall
 pip uninstall transformers -y
 git clone https://github.com/microsoft/fastformers
 cd fastformers
-pip install onnxruntime==1.8.0 --user --upgrade --no-deps --force-reinstall
 pip install .
 ```
 

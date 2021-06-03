@@ -5,6 +5,8 @@
 
 ### Notes
 
+- **(June 3, 2021) The public onnxruntime (v1.8.0) now supports all FastFormers models.** Special thanks to @yufenglee and onnxruntime team.
+- (Nov. 4, 2020) We are actively working with Hugging Face and onnxruntime team so that you can utilize the features out of the box of huggingface's transformers and onnxruntime. Please stay tuned.
 - With this repository, you can replicate the results presented in the *FastFormers* paper.
 - The demo models of *FastFormers* are implemented with [SuperGLUE](https://super.gluebenchmark.com/) benchmark. Data processing pipeline is based on Alex Wang's implementation [reference code](https://github.com/W4ngatang/transformers/tree/superglue) for [SustaiNLP](https://sites.google.com/view/sustainlp2020/home) which is a fork from HuggingFace's [transformers](https://github.com/huggingface/transformers) repository. 
 - This repository is built on top of several open source projects including [transformers](https://github.com/huggingface/transformers) from HuggingFace, [onnxruntime](https://github.com/Microsoft/onnxruntime), [transformers](https://github.com/W4ngatang/transformers/tree/superglue) from Alex Wang, [FBGEMM](https://github.com/pytorch/FBGEMM), [TinyBERT](https://github.com/huawei-noah/Pretrained-Language-Model/tree/master/TinyBERT) and etc.
@@ -17,24 +19,24 @@
   * CPUs equipped with at least one, or both of `AVX2` and `AVX512` instruction sets are required. To get the full speed improvements and accuracy, `AVX512` instruction set is required. We have tested our runtime on Intel CPUs.
 - GPU requirements:
   * To utilize 16-bit floating point speed-up, GPUs with Volta or later architectures are required.
-- This repository is a branch of [transformers](https://github.com/huggingface/transformers), so you need to uninstall pre-existing transformers in your python environment. Also, it utilizes a custom branch of [onnxruntime](https://github.com/Microsoft/onnxruntime), so any existing onnxruntime in your environment needs to be uninstalled before installing and utilizing this repository. We are trying to merge our customized code into the public main branch of transformers and onnxruntime.
+- onnxruntime v1.8.0+ is required to run *FastFormers* models.
+- This repository is a branch of [transformers](https://github.com/huggingface/transformers), so you need to uninstall pre-existing transformers in your python environment.
 
 
 ## Installation
 
 This repo is tested on Python 3.6 and 3.7, PyTorch 1.5.0+.
 
-You need to uninstall pre-existing transformers and onnxruntime packages as this repository uses customized versions of those.
+You need to uninstall pre-existing transformers package as this repository uses customized versions of it.
 
-You need to install PyTorch 1.5.0+. Then, execute following bash commands for Python 3.6. In case your environment has Python 3.7, please change the onnxruntime wheel file name to `onnxruntime-1.4.0-cp37-cp37m-linux_x86_64.whl` and do execute the same commands.
+You need to install PyTorch 1.5.0+. Then, execute following bash commands. You need to install onnxruntime 1.8.0+.
 
 
 ```bash
+pip install onnxruntime==1.8.0 --user --upgrade --no-deps --force-reinstall
 pip uninstall transformers -y
-pip uninstall onnxruntime -y
 git clone https://github.com/microsoft/fastformers
 cd fastformers
-pip install examples/fastformers/onnxruntime/onnxruntime-1.4.0-cp36-cp36m-linux_x86_64.whl --user
 pip install .
 ```
 
@@ -43,7 +45,7 @@ pip install .
 
 All the models used to benchmark Table 3 in the paper are publicly shared. You can use below commands to reproduce the results. Table 3 measurement was done on one of the Azure F16s_v2 instances.
 
-![Table3](table3.png)
+![Table3](examples/fastformers/table3.png)
 
 The [installation step](#installation) needs to be done before proceeding.
 
@@ -232,4 +234,4 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 
 ## License
 
-This project is licensed under the [MIT License](../../LICENSE).
+This project is licensed under the [MIT License](LICENSE).
