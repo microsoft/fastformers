@@ -96,7 +96,7 @@ extras["dev"] = extras["testing"] + extras["quality"] + ["mecab-python3", "sciki
 
 setup(
     name="transformers",
-    version="4.35.0",
+    version="4.36.2",
     author="Thomas Wolf, Lysandre Debut, Victor Sanh, Julien Chaumond, Sam Shleifer, Patrick von Platen, Google AI Language Team Authors, Open AI team Authors, Facebook AI Authors, Carnegie Mellon University Authors",
     author_email="thomas@huggingface.co",
     description="State-of-the-art Natural Language Processing for TensorFlow 2.0 and PyTorch",
