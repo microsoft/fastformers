@@ -96,7 +96,7 @@ extras["dev"] = extras["testing"] + extras["quality"] + ["mecab-python3", "sciki
 
 setup(
     name="transformers",
-    version="2.11.0",
+    version="4.35.0",
     author="Thomas Wolf, Lysandre Debut, Victor Sanh, Julien Chaumond, Sam Shleifer, Patrick von Platen, Google AI Language Team Authors, Open AI team Authors, Facebook AI Authors, Carnegie Mellon University Authors",
     author_email="thomas@huggingface.co",
     description="State-of-the-art Natural Language Processing for TensorFlow 2.0 and PyTorch",
@@ -109,7 +109,7 @@ setup(
     packages=find_packages("src"),
     install_requires=[
         "numpy",
-        "tokenizers == 0.8.0-rc1",
+        "tokenizers == 0.15.0",
         # dataclasses for Python versions that don't have it
         "dataclasses;python_version<'3.7'",
         # utilities from PyPA to e.g. compare versions
@@ -127,7 +127,7 @@ setup(
         # for XLM
         "sacremoses",
         # for superglue
-        "sklearn",
+        "scikit-learn",
         "experiment_impact_tracker",
         "torch",
         # for superglue - impact tracker
